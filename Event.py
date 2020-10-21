@@ -5,8 +5,7 @@ import pandas as pd
 import numpy as np
 
 from scrapy.crawler import CrawlerProcess
-from datetime import datetime, date
-# from operator import itemgetter
+from datetime import datetime, dateDraftKings
 from itertools import combinations, product
 from UFCStatsSpider import UFCStatsSpider
 from BloodyElbowSpider import BloodyElbowSpider
@@ -31,8 +30,17 @@ class Event:
     NEWCOMER_POINTS = 25
     PICK_EVERY_WAY = 2
 
-    def __init__(self, event_webpage_dk, event_webpage_ufcstats, UFCStats_loc, dk_csv_path, bloodyelbow_webpage,
-                 bloodyelbow_loc, override_stats, forced_matchups, sherdog_webpage, sherdog_loc, odds_webpage):
+    def __init__(self, event_webpage_dk: str = '',
+                 event_webpage_ufcstats: str = '',
+                 bloodyelbow_webpage: str = '',
+                 bloodyelbow_loc: str = '',
+                 sherdog_webpage: str = '',
+                 sherdog_loc: str = '',
+                 odds_webpage: str = '',
+                 UFCStats_loc: str = '',
+                 dk_csv_path: str = '',
+                 override_stats: dict = {},
+                 forced_matchups: list = []):
 
         self.event_webpage_dk = event_webpage_dk
         self.event_webpage_ufcstats = event_webpage_ufcstats
@@ -53,12 +61,12 @@ class Event:
         # self.location = location                # find info on weather, altitude, commission, other factors...
         self.dk_salaries = self.load_dk_csv()  # DataFrame
 
-        if not os.path.exists(self.UFCStats_loc):
-            os.makedirs(self.UFCStats_loc)
-
-        if not os.path.exists(self.UFCStats_loc + '/matchups'):
-            os.makedirs(self.UFCStats_loc + '/matchups')
-            self.scrape_ufcstats()
+        # if not os.path.exists(self.UFCStats_loc):
+        #     os.makedirs(self.UFCStats_loc)
+        #
+        # if not os.path.exists(self.UFCStats_loc + '/matchups'):
+        #     os.makedirs(self.UFCStats_loc + '/matchups')
+        #     self.scrape_ufcstats()
 
         self.combine_ufcstats()
 

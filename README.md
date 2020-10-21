@@ -1,6 +1,5 @@
 # DFS-UFC
 Analyzing data from past UFC matchups to make predictions for daily fantasy sports (DFS) tournaments.
 
-Make an edit on local machine.
-
-Make edit from Pycharm.
+This project collects data from several sources to analyze past performance of fighters and make predictions
+ specifically for large DFS tournaments.
