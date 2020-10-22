@@ -4,12 +4,9 @@ import re
 import pandas as pd
 import numpy as np
 
-from scrapy.crawler import CrawlerProcess
-from datetime import datetime, dateDraftKings
+from datetime import datetime, date
 from itertools import combinations, product
-from UFCStatsSpider import UFCStatsSpider
-from BloodyElbowSpider import BloodyElbowSpider
-from SherdogSpider import SherdogSpider
+
 
 from os import listdir
 from os.path import isfile, join
