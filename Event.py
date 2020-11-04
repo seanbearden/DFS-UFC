@@ -129,6 +129,9 @@ class Event:
         self.pick_n_everyway(self.PICK_EVERY_WAY - len(self.forced_matchups))
         self.greedy_pick()
 
+    def assert_stats_dict(self):
+        """Assert statements to catch errors in stats dictionaries..."""
+        pass
     def combine_ufcstats(self):
         """Load and combine matchup info into """
         dir_name = self.ufcstats_event_loc  + '/matchups'

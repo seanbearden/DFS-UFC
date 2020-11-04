@@ -14,6 +14,6 @@ override_stats = {}#{'Tagir Ulanbekov': 90,'Edson Barboza':80,'Youssef Zalal':40
 forced_matchups = []#['Marlon Moraes vs. Cory Sandhagen','Edson Barboza vs. Makwan Amirkhani']
 
 event_kwargs = {'card_id': card_id,
-                'forced_matchups': ['Da-Un Jung vs. Sam Alvey', 'Robert Whittaker vs. Jared Cannonier'],
+                'forced_matchups': [],
                 'override_stats': {}}
 event = Event(**event_kwargs)

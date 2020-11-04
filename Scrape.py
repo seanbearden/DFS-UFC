@@ -2,14 +2,13 @@ import os
 from urllib.request import urlopen, urlretrieve, Request
 from bs4 import BeautifulSoup
 from decimal import Decimal
-from datetime import timezone
-from dateutil import parser
 import json
 import csv
 import re
 
 
 def get_soup(url):
+    """Get html from url and return as BeautifulSoup"""
     request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     response = urlopen(request)
     url_req = response.read()
