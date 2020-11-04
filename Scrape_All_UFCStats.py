@@ -1,9 +1,12 @@
+# Need to fix detection of performance bonus...Currently misidentifies a title bout as a bonus
+
 import os
 from urllib.request import urlopen, Request
 from urllib.error import URLError
 from bs4 import BeautifulSoup
 import json
 from time import sleep
+from datetime import datetime
 
 
 def get_soup(url):
@@ -12,7 +15,7 @@ def get_soup(url):
     while True:
         try:
             request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-            sleep(0.1)
+            sleep(0.2)
             response = urlopen(request)
             break
         except URLError as err:
@@ -63,9 +66,8 @@ def get_ufcstats_matchup_links(ufcstats_event_url):
     event_dict = {'EventName': event_name,
                   'EventDate': event_date,
                   'EventLocation': event_location,
+                  'EventURL': ufcstats_event_url,
                   'FightCount': fight_count}
-    # for f in range(fight_count):
-    #     event_dict[str(fight_count-f)] = {'WeightClass': weight_classes[f]}
     print(event_name, event_date, event_location)
     return matchup_links, event_dict
 
@@ -84,7 +86,24 @@ def parse_ufcstats_matchup(matchup_link):
     outcomes = soup.select("div.b-fight-details__persons.clearfix > div.b-fight-details__person > i")
     outcomes = strip_soup(outcomes)
     bout_type = soup.select("div.b-fight-details__fight > div.b-fight-details__fight-head > i")
-    perf_bonus = True if bout_type[0].select('img') else False
+    # Need to fix detection of performance bonus...Currently misidentifies a title bout as a bonus
+    special_bouts = bout_type[0].select('img')
+    title_bout = False
+    bonus = ''
+    if special_bouts:
+        for s in special_bouts:
+            special_png_name = s['src'].split('/')[-1]
+            if special_png_name == 'belt.png':
+                title_bout = True
+            elif special_png_name == 'perf.png':
+                bonus += 'perf '
+            elif special_png_name == 'fight.png':
+                bonus += 'fight '
+            elif special_png_name == 'sub.png':
+                bonus += 'sub '
+            elif special_png_name == 'ko.png':
+                bonus += 'ko '
+    perf_bonus = True if bonus else False
     bout_type = strip_soup(bout_type)[0]
     method = soup.select("div.b-fight-details__fight > div.b-fight-details__content > p:nth-child(1) > "
                          "i.b-fight-details__text-item_first > i:nth-child(2)")
@@ -284,15 +303,17 @@ def parse_ufcstats_matchup(matchup_link):
                           'Round 5': {}}
 
     matchup_dict = {'Fighter_1': fighter_0_dict,
-                    'Fighter2': fighter_1_dict,
+                    'Fighter_2': fighter_1_dict,
                     'WeightClass': bout_type,
-                    'PerformanceBonus': perf_bonus,
+                    'Bonus': perf_bonus,
+                    'BonusType': bonus,
                     'Method': method,
                     'Round': round_seen,
                     'RoundTime': round_time,
                     'RoundFormat': round_format,
                     'Referee': referee,
-                    'Details': details}
+                    'Details': details,
+                    'TitleFight': title_bout}
     return matchup_dict
 
 
@@ -304,7 +325,7 @@ if __name__ == '__main__':
     for j, event_link in enumerate(event_links):
         print(j)
         m_links, e_dict = get_ufcstats_matchup_links(event_link)
-
+        print(e_dict['EventName'])
         for i, matchup_link in enumerate(m_links):
             # print(matchup_link)
             sleep(0.2)
@@ -312,9 +333,10 @@ if __name__ == '__main__':
             m_dict = parse_ufcstats_matchup(matchup_link)
             e_dict[str(bout_count)] = m_dict
 
-        filename = os.getcwd() + '/UFCStats_Dicts/All_Events/' + e_dict['EventDate'] + ' ' + \
-                   e_dict['EventName'] + '.json '
+        dt = datetime.strptime(e_dict['EventDate'], '%B %d, %Y')
+        filename = os.getcwd() + '/UFCStats_Dicts/All_Events/' + \
+                   dt.strftime('%Y%m%d') + '_' + e_dict['EventName'].replace(" ", "") + '.json'
+
         json_object = json.dumps(e_dict, indent=4)
         with open(filename, 'w') as outfile:
             outfile.write(json_object)
-        # break
