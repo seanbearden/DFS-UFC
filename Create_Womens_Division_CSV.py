@@ -3,15 +3,17 @@ import pandas as pd
 from os import listdir, getcwd
 from os.path import isfile, join
 
-path_all_events = getcwd() + '/UFCStats_Dicts/All_Events_Fixed/'
+path_all_events = getcwd() + '/UFCStats_Dicts/All_Events/'
 path_processed_events = getcwd() + '/UFCStats_Dicts/Processed/'
 processed_filename = 'All_Womens_Fights.csv'
-only_files = [f for f in listdir(path_all_events) if isfile(join(path_all_events, f))]
+only_files = [f for f in listdir(path_all_events) if isfile(join(path_all_events, f)) and not f.startswith('.')]
 
 event_name = []
 event_date = []
 weight_class = []
-performance_bonus = []
+bonus_type = []
+bonus = []
+title = []
 method = []
 position_on_card = []
 round_seen = []
@@ -26,7 +28,6 @@ for event_path in only_files:
     with open(join(path_all_events, event_path)) as json_file:
         data = json.load(json_file)
         n_fights = data['FightCount']
-        # print(data['EventName'])
         for fight_idx in range(1, n_fights + 1):
             fight_idx_str = str(fight_idx)
             if data[fight_idx_str]['WeightClass'].lower().find('women') >= 0:
@@ -34,7 +35,9 @@ for event_path in only_files:
                 event_name.append(data['EventName'])
                 event_date.append(data['EventDate'])
                 weight_class.append(data[fight_idx_str]['WeightClass'])
-                performance_bonus.append(data[fight_idx_str]['PerformanceBonus'])
+                bonus.append(data[fight_idx_str]['Bonus'])
+                bonus_type.append(data[fight_idx_str]['BonusType'])
+                title.append(data[fight_idx_str]['TitleFight'])
                 method.append(data[fight_idx_str]['Method'])
                 round_seen.append(data[fight_idx_str]['Round'])
                 round_time.append(data[fight_idx_str]['RoundTime'])
@@ -44,11 +47,12 @@ for event_path in only_files:
                 fighter_2_name.append(data[fight_idx_str]['Fighter_2']['Name'])
                 fighter_2_outcome.append(data[fight_idx_str]['Fighter_2']['Outcome'])
 
-
 d = {'EventName': event_name,
      'EventDate': event_date,
      'WeightClass': weight_class,
-     'Bonus': performance_bonus,
+     'Bonus': bonus,
+     'BonusType': bonus_type,
+     'TitleFight': title,
      'Method': method,
      'Round': round_seen,
      'RoundTime': round_time,
@@ -62,8 +66,7 @@ d = {'EventName': event_name,
 df = pd.DataFrame(data=d)
 
 df['EventDate'] = pd.to_datetime(df['EventDate'])
-df.sort_values(by='EventDate',inplace=True)
-df['TitleBout'] = df['WeightClass'].str.contains('Title', regex=False)
+df.sort_values(by='EventDate', inplace=True)
 df['WeightClass'] = df['WeightClass'].str.replace('UFC Women\'s Bantamweight Title Bout', 'Women\'s Bantamweight Bout')
 df['WeightClass'] = df['WeightClass'].str.replace('UFC Women\'s Strawweight Title Bout', 'Women\'s Strawweight Bout')
 df['WeightClass'] = df['WeightClass'].str.replace('UFC Women\'s Flyweight Title Bout', 'Women\'s Flyweight Bout')
@@ -73,7 +76,3 @@ df['WeightClass'] = df['WeightClass'].str.replace('Ultimate Fighter 23 Women\'s 
 df['WeightClass'] = df['WeightClass'].str.replace('Ultimate Fighter 28 Women\'s Featherweight Tournament Title Bout', 'Women\'s Featherweight Bout')
 
 df.to_csv(join(path_processed_events, processed_filename), index=False)
-
-# json_object = json.dumps(d, indent=4)
-# with open(join(path_processed_events, processed_filename), 'w') as outfile:
-#     outfile.write(json_object)
