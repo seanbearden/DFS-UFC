@@ -9,6 +9,42 @@ from datetime import datetime, date
 from itertools import combinations, product
 from os import listdir
 from os.path import isfile, join
+from fuzzywuzzy import fuzz
+
+def find_key(name, name_list):
+    """
+
+    Args:
+        name (str):
+        name_list (List[str]): assumes two elements, as there are only two fighters in a match.
+
+    Returns:
+
+    """
+    name1_score = fuzz.partial_ratio(name,name_list[0])
+    name2_score = fuzz.partial_ratio(name,name_list[1])
+    return name_list[0] if name1_score > name2_score else name_list[1]
+
+
+def check_vs_for_name(name, vs):
+    """
+    Check to see if fighter name is present in 'vs' string 'fighter_1 vs. fighter_2'.
+    Args:
+        name (str):
+        vs (str):
+
+    Returns:
+        bool: True if full 'name' is in 'vs'
+
+    """
+    name_split = name.split()
+    name_in_vs = []
+    for n in name_split:
+        if vs.find(n) < 0:
+            name_in_vs.append(False)
+        else:
+            name_in_vs.append(True)
+    return all(name_in_vs)
 
 
 def process_mma_record(f1):
@@ -245,37 +281,39 @@ class Event:
         odds_first_names = [n.split()[0] for n in odds_names]
         vs = list(self.UFCStats_dict.keys())
         for index, row in self.dk_salaries.iterrows():
+            t = row['Name']
             for fight in vs:
-                if fight.find(row['Name']) != -1:
+                if check_vs_for_name(row['Name'], fight):
+                # if fight.find(row['Name']) != -1:
                     fighters = self.UFCStats_dict[fight]
-                    if row['Name'] in list(fighters.keys()):
-                        name = row['Name'].split()
-                        first_name = name[0]
-                        last_name = name[-1]
-                        if last_name in odds_last_names:
-                            # print(row['Name'])
-                            substr = last_name
-                        elif first_name in odds_first_names:
-                            substr = first_name
-                        else:
-                            print('missing: ' + row['Name'])
-                            substr = ''
+                    key_name = find_key(row['Name'], list(fighters.keys()))
 
-                        temp = fighters[row['Name']]
-                        if substr:
-                            for name in odds_names:
-                                if substr in name:
-                                    # print(name, self.dk_odds[name])
-                                    temp['odds'] = self.dk_odds[name]
-                                    temp['WeightedAvgPoints'] = row['AvgPointsPerGame'] * self.dk_odds[name]
-                                    break
-
-                        temp['Salary'] = row['Salary']
-                        temp['AvgPointsPerGame'] = row['AvgPointsPerGame']
-                        fighters[row['Name']] = temp
-                        self.UFCStats_dict[fight] = fighters
+                    name = row['Name'].split()
+                    first_name = name[0]
+                    last_name = name[-1]
+                    if last_name in odds_last_names:
+                        # print(row['Name'])
+                        substr = last_name
+                    elif first_name in odds_first_names:
+                        substr = first_name
                     else:
-                        print("error for fighter: ", row['Name'])
+                        print('missing: ' + row['Name'])
+                        substr = ''
+
+                    temp = fighters[key_name]
+                    if substr:
+                        for name in odds_names:
+                            if substr in name:
+                                # print(name, self.dk_odds[name])
+                                temp['odds'] = self.dk_odds[name]
+                                temp['WeightedAvgPoints'] = row['AvgPointsPerGame'] * self.dk_odds[name]
+                                break
+
+                    temp['Salary'] = row['Salary']
+                    temp['AvgPointsPerGame'] = row['AvgPointsPerGame']
+                    fighters[key_name] = temp
+                    self.UFCStats_dict[fight] = fighters
+
                     break
 
     def add_fight_history(self):
