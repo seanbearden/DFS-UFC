@@ -29,13 +29,18 @@ def find_key(name, name_list):
 def check_vs_for_name(name, vs):
     """
     Check to see if fighter name is present in 'vs' string 'fighter_1 vs. fighter_2'.
-    Args:
-        name (str):
-        vs (str):
 
-    Returns:
-        bool: True if full 'name' is in 'vs'
+    May want to use fuzzywuzzy like find_key()
 
+    Parameters
+    ----------
+    name : str
+    vs : str
+
+    Returns
+    -------
+    bool
+        True if entirety of 'name' is in 'vs'
     """
     name_split = name.split()
     name_in_vs = []
@@ -99,18 +104,54 @@ def process_reach(reach):
 
 
 def process_percentage(strike_acc, strike_def, takedown_acc, takedown_def):
-    """Convert string to percentages"""
+    """
+    Convert string to percentages
+
+    Parameters
+    ----------
+    strike_acc
+    strike_def
+    takedown_acc
+    takedown_def
+
+    Returns
+    -------
+
+    """
     return float(strike_acc.rstrip("%")) / 100, float(strike_def.rstrip("%")) / 100, \
            float(takedown_def.rstrip("%")) / 100, float(takedown_acc.rstrip("%")) / 100
 
 
 def process_str_to_float(SLpM, SApM, takedown_avg, sub_avg):
-    """Convert strings to floats"""
+    """
+    Convert strings to floats
+
+    Parameters
+    ----------
+    SLpM
+    SApM
+    takedown_avg
+    sub_avg
+
+    Returns
+    -------
+
+    """
     return float(SLpM), float(SApM), float(takedown_avg), float(sub_avg)
 
 
 def process_recent_ufc_record(record_list):
-    """Convert 'W' to True, all else to false. That is, a fight won is recorded a True"""
+    """
+    Convert 'W' to True, all else to false. That is, a fight won is recorded a True
+
+    Parameters
+    ----------
+    record_list
+
+    Returns
+    -------
+
+    """
     record = []
     for fight in record_list:
         if fight[0] == 'W':
