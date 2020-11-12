@@ -24,6 +24,29 @@ fighter_2_name = []
 fighter_1_outcome = []
 fighter_2_outcome = []
 
+
+def find_weight_class(wc_str):
+    """Determine the weight class of a fight by finding substring.
+
+    If the weight class cannot be determined, the output will be 'UNKNOWN'.
+
+    Parameters
+    ----------
+    wc_str : str
+
+    Returns
+    -------
+    str
+    """
+
+    wcs = ['Strawweight', 'Flyweight', 'Bantamweight', 'Featherweight', 'Lightweight', 'Welterweight', 'Middleweight',
+           'Light Heavyweight', 'Heavyweight', 'Open Weight', 'Tournament', 'Superfight', 'Catch Weight']
+    for wc in wcs:
+        if wc_str.find(wc) >= 0:
+            return wc
+    return 'UNKNOWN'
+
+
 for event_path in only_files:
     with open(join(path_all_events, event_path)) as json_file:
         data = json.load(json_file)
@@ -33,7 +56,7 @@ for event_path in only_files:
             position_on_card.append(fight_idx_str + ' of ' + str(n_fights))
             event_name.append(data['EventName'])
             event_date.append(data['EventDate'])
-            weight_class.append(data[fight_idx_str]['WeightClass'])
+            weight_class.append(find_weight_class(data[fight_idx_str]['WeightClass']))
             bonus.append(data[fight_idx_str]['Bonus'])
             bonus_type.append(data[fight_idx_str]['BonusType'])
             title.append(data[fight_idx_str]['TitleFight'])
@@ -67,7 +90,4 @@ df = pd.DataFrame(data=d)
 df['EventDate'] = pd.to_datetime(df['EventDate'])
 df.sort_values(by='EventDate', inplace=True)
 
-
 df.to_csv(join(path_processed_events, processed_filename), index=False)
-
-

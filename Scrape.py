@@ -52,7 +52,8 @@ class Scrape:
                  bloodyelbow_url: str = '',
                  sherdog_event_url: str = '',
                  dk_odds_url: str = '',
-                 card_id: str = ''):
+                 card_id: str = '',
+                 rescrape_dk: bool = False):
 
         self.card_id = card_id
         # scrape UFCStats.com
@@ -62,6 +63,7 @@ class Scrape:
         self.sherdog_event_url = sherdog_event_url
         self.sherdog_event_loc = 'Sherdog_Dicts/' + card_id
         # scrape DK event
+        self.rescrape_dk = rescrape_dk
         self.dk_event_url = dk_event_url
         self.salary_csv_loc = 'DraftKings/Salary_CSV/DKSalaries_' + card_id + '.csv'
         self.payout_csv_loc = 'DraftKings/Payout_CSV/DKPayout_' + card_id + '.csv'
@@ -83,7 +85,7 @@ class Scrape:
     def scrape_dk_odds(self):
         """Get odds from DK and remove vig. SAve to JSON file."""
         # Odds currently contains fighter odds from multiple events.
-        if self.dk_odds_url and not os.path.exists(self.odds_json_loc):
+        if self.dk_odds_url and (not os.path.exists(self.odds_json_loc) or self.rescrape_dk):
             print("Scraping DK Odds")
             soup = get_soup(self.dk_odds_url)
             span_list = soup.find_all('span')

@@ -342,6 +342,7 @@ class Event:
                         substr = ''
 
                     temp = fighters[key_name]
+                    temp['WeightedAvgPoints'] = row['AvgPointsPerGame'] * 0.5
                     if substr:
                         for name in odds_names:
                             if substr in name:

@@ -1,5 +1,3 @@
-# Need to fix detection of performance bonus...Currently misidentifies a title bout as a bonus
-
 import os
 from urllib.request import urlopen, Request
 from urllib.error import URLError
@@ -12,11 +10,16 @@ from datetime import datetime
 def get_soup(url):
     """Get html from url and return as BeautifulSoup
 
-    Args:
-        url (str): url for webpage to be scraped.
+    Parameters
+    ----------
+    url : str
+        url for webpage to be scraped.
 
-    Returns:
-        bs4.BeautifulSoup: soup of html
+    Returns
+    -------
+    bs4.BeautifulSoup
+        soup of html
+
     """
     while True:
         try:
@@ -38,12 +41,17 @@ def get_soup(url):
 def get_attribute_list(link_soup, attr):
     """Get atrributes from list of BeautifulSoup tags
 
-    Args:
-        link_soup (list): List of bs4.element.Tag.
-        attr (str): html attribute to be selected.
+    Parameters
+    ----------
+    link_soup : list
+        List of bs4.element.Tag.
+    attr : str
+        html attribute to be selected.
 
-    Returns:
-        list of str: list of desired attributes.
+    Returns
+    -------
+    list of str
+        list of desired attributes.
     """
     return list(map(lambda line: line[attr], link_soup))
 
@@ -51,40 +59,61 @@ def get_attribute_list(link_soup, attr):
 def strip_strs(str_list):
     """Strip list of strings of leading and trailing whitespace.
 
-    Args:
-        str_list (list of str): List of strings.
+    Parameters
+    ----------
+    str_list : list
+        List of strings.
 
-    Returns:
-        list of str
+    Returns
+    -------
+    list of str
     """
     return list(map(lambda x: x.text.strip(), str_list))
 
 
-def get_ufcstats_event_links():
-    """Retrieve html, parse html for event links, and return links. Note that no data exists for UFC 1.
+def get_ufcstats_event_links(stats_link="http://ufcstats.com/statistics/events/completed?page=all"):
+    """Retrieve html, parse html for event links, and return links.
+    Note that no data exists for UFC 1.
 
-    Returns:
-        list of str: List of urls to all past events
+    Parameters
+    ----------
+    stats_link : str, optional
+        Assuming the domain for UFCStats will not change
 
-    Notes:
-        Currently, the functions returns the next upcoming event. Need to add handling to remove this url.
+    Returns
+    -------
+    list of str
+        List of urls to all events
+
+    Notes
+    -----
+    The function returns the next upcoming event.
     """
-    soup = get_soup("http://ufcstats.com/statistics/events/completed?page=all")
+    soup = get_soup(stats_link)
     matchup_links = soup.select("i.b-statistics__table-content > a[href]")
     matchup_links = get_attribute_list(matchup_links, 'href')
     return matchup_links
 
 
 def get_ufcstats_matchup_links(ufcstats_event_url):
-    """Retrieve html, parse html for matchup links, and return links"""
+    """Retrieve and parse html for matchup urls for event
+
+    Parameters
+    ----------
+    ufcstats_event_url : str
+
+    Returns
+    -------
+    matchup_links : list
+        list of url strings
+    event_dict : dict
+        Info for entire event
+    """
     soup = get_soup(ufcstats_event_url)
     matchup_links = soup.select("tbody.b-fight-details__table-body > tr[data-link]")
     matchup_links = get_attribute_list(matchup_links, 'data-link')
     event_name = soup.select("body > section > div > h2 > span")
     event_info = soup.select("div.b-list__info-box.b-list__info-box_style_large-width > ul > li")
-    # weight_classes = soup.select("body > section > div > div > table > tbody > tr> td:nth-child(7) > p")
-    # weight_classes = strip_strs(weight_classes)
-    # print(weight_classes)
     event_name = event_name[0].text.strip()
     event_date = event_info[0].text.split(':')[1].strip()
     event_location = event_info[1].text.split(':')[1].strip()
@@ -99,10 +128,19 @@ def get_ufcstats_matchup_links(ufcstats_event_url):
 
 
 def parse_ufcstats_matchup(matchup_link):
-    """Parse matchup html for fighter info. Save as json file."""
+    """Parse matchup html for info on fighters.
+
+    Parameters
+    ----------
+    matchup_link : str
+        url to matchup
+
+    Returns
+    -------
+    dict
+    """
     soup = get_soup(matchup_link)
 
-    # event_name = soup.select("body > section > div > h2 > a")[0].text.strip()
     fighter_links = soup.select("h3.b-fight-details__person-name > a[href]")
     fighter_links = get_attribute_list(fighter_links, 'href')
     fighter_names = soup.select("h3.b-fight-details__person-name > a")
@@ -112,7 +150,6 @@ def parse_ufcstats_matchup(matchup_link):
     outcomes = soup.select("div.b-fight-details__persons.clearfix > div.b-fight-details__person > i")
     outcomes = strip_strs(outcomes)
     bout_type = soup.select("div.b-fight-details__fight > div.b-fight-details__fight-head > i")
-    # Need to fix detection of performance bonus...Currently misidentifies a title bout as a bonus
     special_bouts = bout_type[0].select('img')
     title_bout = False
     bonus = ''
@@ -158,7 +195,6 @@ def parse_ufcstats_matchup(matchup_link):
     if round_totals:
         round_numbers = strip_strs(round_totals[0].select('th'))
         number_rounds_needed = len(round_numbers)
-        # assert int(round_seen) == number_rounds_needed  # confirm round info is correct
         subtotals = fighter_totals[0].select('td')
         round_subtotals = round_totals[0].select('td')
         strike_subtotals = fighter_strike_totals[0].select('td')
@@ -183,10 +219,10 @@ def parse_ufcstats_matchup(matchup_link):
             fighter_0_strike_rounds.append(sub_p[0].text.strip())
             fighter_1_strike_rounds.append(sub_p[1].text.strip())
 
-        assert fighter_names[0] == fighter_0[0]
-        assert fighter_names[1] == fighter_1[0]
-        assert len(fighter_0_rounds) == len(round_numbers) * 10
+        # assert fighter_names[0] == fighter_0[0]
+        # assert fighter_names[1] == fighter_1[0]
         # there are 10 strs of data per round
+        # assert len(fighter_0_rounds) == len(round_numbers) * 10
 
         fighter_0_dict = {'Name': fighter_names[0],
                           'Opponent': fighter_names[1],
@@ -277,6 +313,7 @@ def parse_ufcstats_matchup(matchup_link):
             fighter_0_dict[r] = temp_0
             fighter_1_dict[r] = temp_1
     else:
+        # Older events sometimes have missing info
         fighter_0_dict = {'Name': fighter_names[0],
                           'Opponent': fighter_names[1],
                           'Nickname': nicknames[0],
@@ -347,7 +384,8 @@ if __name__ == '__main__':
     event_links = get_ufcstats_event_links()
     upcoming_event = event_links.pop(0)         # pop the upcoming event from list.
     start_idx = 0
-    event_links = event_links[start_idx:]
+    end_idx = 1
+    event_links = event_links[start_idx:end_idx]
     for j, event_link in enumerate(event_links):
         print(j)
         m_links, e_dict = get_ufcstats_matchup_links(event_link)
